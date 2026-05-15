@@ -1,0 +1,108 @@
+# PWA & API Configuration (.htaccess)
+# Place this in your web root on Hostinger
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  
+  # Skip rewriting if file exists
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Route to index.php for login page
+  RewriteRule ^(?!api/).*$ index.php [QSA,L]
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MIME Types for PWA
+# ─────────────────────────────────────────────────────────────────────────────
+<IfModule mod_mime.c>
+  AddType application/manifest+json .json
+  AddType application/javascript .js
+  AddType image/png .png
+  AddType image/webp .webp
+  AddType font/woff2 .woff2
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HTTP Headers
+# ─────────────────────────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  # Service Worker scope
+  Header set Service-Worker-Allowed "/"
+  
+  # Prevent MIME type sniffing
+  Header set X-Content-Type-Options "nosniff"
+  
+  # Enable compression
+  Header set Vary "Accept-Encoding"
+  
+  # Security headers (recommended)
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Enable Compression
+# ─────────────────────────────────────────────────────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE application/manifest+json
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cache Control - Static Assets (1 year)
+# ─────────────────────────────────────────────────────────────────────────────
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|css|js|woff|woff2|svg|eot|ttf)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "max-age=31536000, public, immutable"
+  </IfModule>
+</FilesMatch>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cache Control - Dynamic Files (no-cache)
+# ─────────────────────────────────────────────────────────────────────────────
+<FilesMatch "\.(html|php|json|sw\.js)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </IfModule>
+</FilesMatch>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ETag for validation
+# ─────────────────────────────────────────────────────────────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 2 days"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/xml "access plus 0 seconds"
+  ExpiresByType application/xml "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Disable Directory Listing
+# ─────────────────────────────────────────────────────────────────────────────
+Options -Indexes
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Redirect HTTP to HTTPS (uncomment if using SSL)
+# ─────────────────────────────────────────────────────────────────────────────
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on
+#   RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+# </IfModule>

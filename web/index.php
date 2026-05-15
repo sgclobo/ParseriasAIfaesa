@@ -1,4 +1,5 @@
 <?php
+
 /**
  * index.php — Login page (landing)
  * Mobile-first, styled to match AIFAESA design system.
@@ -7,8 +8,8 @@ require_once __DIR__ . '/auth.php';
 
 // If already logged in, redirect to app
 if (is_logged_in()) {
-    header('Location: app.php');
-    exit;
+  header('Location: app.php');
+  exit;
 }
 
 // Check if there's a cookie-resident email for pre-filling
@@ -18,27 +19,39 @@ $prefilledEmail = '';
 $sessionFresh   = false; // < 48h
 
 if ($cookieUserId) {
-    $db = get_db();
-    $row = $db->querySingle("SELECT email FROM users WHERE id = $cookieUserId", true);
-    if ($row) {
-        $prefilledEmail = $row['email'];
-        $sessionFresh   = ($cookieAge !== null && $cookieAge < SESSION_48H);
-    }
+  $db = get_db();
+  $row = $db->querySingle("SELECT email FROM users WHERE id = $cookieUserId", true);
+  if ($row) {
+    $prefilledEmail = $row['email'];
+    $sessionFresh   = ($cookieAge !== null && $cookieAge < SESSION_48H);
+  }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="ParseriasAifaesa — Plataforma de Artigos e Comunicação Interna da AIFAESA"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ParseriasAifaesa — Plataforma de Artigos e Comunicação Interna da AIFAESA" />
   <title>ParseriasAifaesa — Login</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#0059bb" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Parseiras" />
+
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
   <!-- Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <script id="tailwind-config">
@@ -71,33 +84,71 @@ if ($cookieUserId) {
             body: ['Inter'],
             label: ['Inter'],
           },
-          borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', full: '9999px' },
+          borderRadius: {
+            DEFAULT: '0.25rem',
+            lg: '0.5rem',
+            xl: '0.75rem',
+            full: '9999px'
+          },
         },
       },
     }
   </script>
   <style>
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
-    body { font-family: 'Inter', sans-serif; }
-    h1,h2,h3 { font-family: 'Manrope', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: 'Manrope', sans-serif;
+    }
+
     .login-gradient {
       background: linear-gradient(135deg, #0059bb 0%, #0070ea 40%, #006b24 100%);
     }
+
     .glass {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
     @keyframes fadeSlideUp {
-      from { opacity:0; transform:translateY(24px); }
-      to   { opacity:1; transform:translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    .animate-in { animation: fadeSlideUp 0.5s ease both; }
-    .animate-delay-1 { animation-delay: 0.1s; }
-    .animate-delay-2 { animation-delay: 0.2s; }
-    .animate-delay-3 { animation-delay: 0.3s; }
+
+    .animate-in {
+      animation: fadeSlideUp 0.5s ease both;
+    }
+
+    .animate-delay-1 {
+      animation-delay: 0.1s;
+    }
+
+    .animate-delay-2 {
+      animation-delay: 0.2s;
+    }
+
+    .animate-delay-3 {
+      animation-delay: 0.3s;
+    }
   </style>
 </head>
+
 <body class="min-h-screen login-gradient flex items-center justify-center px-4 py-8">
 
   <div class="w-full max-w-sm">
@@ -136,8 +187,7 @@ if ($cookieUserId) {
               required
               value="<?= htmlspecialchars($prefilledEmail) ?>"
               placeholder="seu@email.com"
-              class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-            />
+              class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
           </div>
         </div>
 
@@ -153,17 +203,16 @@ if ($cookieUserId) {
               autocomplete="current-password"
               required
               placeholder="••••••••"
-              class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-            />
+              class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
             <button type="button" id="toggle-pass" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors">
               <span class="material-symbols-outlined text-lg" id="toggle-pass-icon">visibility</span>
             </button>
           </div>
           <?php if ($sessionFresh): ?>
-          <p class="text-[10px] text-tertiary mt-1 flex items-center gap-1">
-            <span class="material-symbols-outlined" style="font-size:12px">check_circle</span>
-            Sessão ativa — senha preenchida automaticamente.
-          </p>
+            <p class="text-[10px] text-tertiary mt-1 flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:12px">check_circle</span>
+              Sessão ativa — senha preenchida automaticamente.
+            </p>
           <?php endif; ?>
         </div>
 
@@ -171,15 +220,14 @@ if ($cookieUserId) {
         <button
           id="login-btn"
           type="submit"
-          class="w-full bg-primary hover:bg-primary-container text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-primary/30 mt-2"
-        >
+          class="w-full bg-primary hover:bg-primary-container text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-primary/30 mt-2">
           <span class="material-symbols-outlined text-sm" id="login-icon">login</span>
           <span id="login-label">Entrar</span>
         </button>
       </form>
 
       <p class="text-center text-xs text-slate-400 mt-6">
-        Acesso restrito a utilizadores registados.<br/>Contacte o administrador para acesso.
+        Acesso restrito a utilizadores registados.<br />Contacte o administrador para acesso.
       </p>
     </div>
 
@@ -188,78 +236,102 @@ if ($cookieUserId) {
     </p>
   </div>
 
-<script>
-// ── Password visibility toggle ──────────────────────────────────────────────
-document.getElementById('toggle-pass').addEventListener('click', () => {
-  const inp  = document.getElementById('password');
-  const icon = document.getElementById('toggle-pass-icon');
-  if (inp.type === 'password') { inp.type = 'text';     icon.textContent = 'visibility_off'; }
-  else                         { inp.type = 'password'; icon.textContent = 'visibility'; }
-});
-
-// ── Remember email in localStorage ─────────────────────────────────────────
-const savedEmail = localStorage.getItem('parseiras_email');
-if (savedEmail && !document.getElementById('email').value) {
-  document.getElementById('email').value = savedEmail;
-}
-
-<?php if ($sessionFresh && $prefilledEmail): ?>
-// Session is fresh (<48h) — signal PHP-side auto-fill note already shown
-document.getElementById('password').value = '__SESSION_FRESH__';
-document.getElementById('password').placeholder = 'Sessão ativa';
-<?php endif; ?>
-
-// ── Form submit ─────────────────────────────────────────────────────────────
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn   = document.getElementById('login-btn');
-  const icon  = document.getElementById('login-icon');
-  const label = document.getElementById('login-label');
-  const err   = document.getElementById('login-error');
-  const errMsg= document.getElementById('login-error-msg');
-
-  const email    = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-
-  btn.disabled   = true;
-  icon.textContent = 'progress_activity';
-  icon.style.animation = 'spin 1s linear infinite';
-  label.textContent = 'A entrar...';
-  err.classList.add('hidden');
-
-  try {
-    const res  = await fetch('api/login.php', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email, password }),
+  <script>
+    // ── Password visibility toggle ──────────────────────────────────────────────
+    document.getElementById('toggle-pass').addEventListener('click', () => {
+      const inp = document.getElementById('password');
+      const icon = document.getElementById('toggle-pass-icon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        inp.type = 'password';
+        icon.textContent = 'visibility';
+      }
     });
-    const data = await res.json();
 
-    if (data.success) {
-      localStorage.setItem('parseiras_email', email);
-      window.location.href = 'app.php';
-    } else {
-      errMsg.textContent = data.error || 'Erro ao autenticar.';
-      err.classList.remove('hidden');
-      btn.disabled = false;
-      icon.textContent = 'login';
-      icon.style.animation = '';
-      label.textContent = 'Entrar';
+    // ── Remember email in localStorage ─────────────────────────────────────────
+    const savedEmail = localStorage.getItem('parseiras_email');
+    if (savedEmail && !document.getElementById('email').value) {
+      document.getElementById('email').value = savedEmail;
     }
-  } catch (ex) {
-    errMsg.textContent = 'Erro de ligação. Tente novamente.';
-    err.classList.remove('hidden');
-    btn.disabled = false;
-    icon.textContent = 'login';
-    icon.style.animation = '';
-    label.textContent = 'Entrar';
-  }
-});
 
-// Spin keyframe for loading icon
-const style = document.createElement('style');
-style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-document.head.appendChild(style);
-</script>
+    <?php if ($sessionFresh && $prefilledEmail): ?>
+      // Session is fresh (<48h) — signal PHP-side auto-fill note already shown
+      document.getElementById('password').value = '__SESSION_FRESH__';
+      document.getElementById('password').placeholder = 'Sessão ativa';
+    <?php endif; ?>
+
+    // ── Form submit ─────────────────────────────────────────────────────────────
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const icon = document.getElementById('login-icon');
+      const label = document.getElementById('login-label');
+      const err = document.getElementById('login-error');
+      const errMsg = document.getElementById('login-error-msg');
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      btn.disabled = true;
+      icon.textContent = 'progress_activity';
+      icon.style.animation = 'spin 1s linear infinite';
+      label.textContent = 'A entrar...';
+      err.classList.add('hidden');
+
+      try {
+        const res = await fetch('api/login.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email,
+            password
+          }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('parseiras_email', email);
+          window.location.href = 'app.php';
+        } else {
+          errMsg.textContent = data.error || 'Erro ao autenticar.';
+          err.classList.remove('hidden');
+          btn.disabled = false;
+          icon.textContent = 'login';
+          icon.style.animation = '';
+          label.textContent = 'Entrar';
+        }
+      } catch (ex) {
+        errMsg.textContent = 'Erro de ligação. Tente novamente.';
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        icon.textContent = 'login';
+        icon.style.animation = '';
+        label.textContent = 'Entrar';
+      }
+    });
+
+    // Spin keyframe for loading icon
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+
+    // ── Service Worker Registration (PWA) ───────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then((registration) => {
+            console.log('[PWA] Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.warn('[PWA] Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
 </body>
+
 </html>

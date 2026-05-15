@@ -1,4 +1,5 @@
 <?php
+
 /**
  * api/comments.php — Get and post comments for an article
  *
@@ -12,9 +13,54 @@ $db   = get_db();
 $user = current_user();
 $method = $_SERVER['REQUEST_METHOD'];
 
+function article_is_visible(SQLite3 $db, array $user, int $articleId): bool
+{
+    $stmt = $db->prepare(
+        "SELECT a.id, a.institution_id
+         FROM articles a
+         WHERE a.id = :id"
+    );
+    $stmt->bindValue(':id', $articleId, SQLITE3_INTEGER);
+    $res = $stmt->execute();
+    $row = $res->fetchArray(SQLITE3_ASSOC);
+    if (!$row) {
+        return false;
+    }
+
+    if ($user['role'] === 'admin') {
+        return true;
+    }
+
+    $institutionId = (int)($user['institution_id'] ?? 0);
+
+    $targetCountStmt = $db->prepare('SELECT COUNT(*) AS total FROM article_institutions WHERE article_id = :article_id');
+    $targetCountStmt->bindValue(':article_id', $articleId, SQLITE3_INTEGER);
+    $targetCountRes = $targetCountStmt->execute();
+    $targetCount = (int)($targetCountRes->fetchArray(SQLITE3_ASSOC)['total'] ?? 0);
+
+    if ($targetCount > 0) {
+        $matchStmt = $db->prepare('SELECT 1 FROM article_institutions WHERE article_id = :article_id AND institution_id = :institution_id LIMIT 1');
+        $matchStmt->bindValue(':article_id', $articleId, SQLITE3_INTEGER);
+        $matchStmt->bindValue(':institution_id', $institutionId, SQLITE3_INTEGER);
+        $matchRes = $matchStmt->execute();
+        return (bool)$matchRes->fetchArray(SQLITE3_ASSOC);
+    }
+
+    // Legacy fallback for old rows with only articles.institution_id
+    if ($row['institution_id'] === null) {
+        return true;
+    }
+
+    return (int)$row['institution_id'] === $institutionId;
+}
+
 if ($method === 'GET') {
     $articleId = (int)($_GET['article_id'] ?? 0);
     if (!$articleId) json_response(['error' => 'article_id é obrigatório.'], 400);
+
+    if (!article_is_visible($db, $user, $articleId)) {
+        json_response(['error' => 'Forbidden'], 403);
+    }
 
     $stmt = $db->prepare("
         SELECT c.id, c.comment, c.created_at,
@@ -38,6 +84,10 @@ if ($method === 'POST') {
 
     if (!$articleId || !$comment) {
         json_response(['error' => 'article_id e comment são obrigatórios.'], 400);
+    }
+
+    if (!article_is_visible($db, $user, $articleId)) {
+        json_response(['error' => 'Forbidden'], 403);
     }
 
     $stmt = $db->prepare("

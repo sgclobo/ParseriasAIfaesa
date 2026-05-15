@@ -1,4 +1,5 @@
 <?php
+
 /**
  * api/users.php — CRUD for users (admin only)
  *
@@ -56,10 +57,10 @@ if ($method === 'POST') {
     if ($action === 'create') {
         $name     = trim($data['name']     ?? '');
         $position = trim($data['position'] ?? '');
-        $instName = trim($data['institution'] ?? '');
+        $instId   = resolve_user_institution_id($db, $data['institution_id'] ?? null, $data['institution'] ?? null);
         $whatsapp = trim($data['whatsapp'] ?? '');
         $email    = trim($data['email']    ?? '');
-        $role     = in_array($data['role'] ?? '', ['admin','user']) ? $data['role'] : 'user';
+        $role     = in_array($data['role'] ?? '', ['admin', 'user']) ? $data['role'] : 'user';
         $password = $data['password'] ?? '';
 
         if (!$name || !$email || !$password) {
@@ -67,13 +68,6 @@ if ($method === 'POST') {
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             json_response(['error' => 'Email inválido.'], 400);
-        }
-
-        // Upsert institution
-        $instId = null;
-        if ($instName) {
-            $db->exec("INSERT OR IGNORE INTO institutions (name) VALUES ('" . SQLite3::escapeString($instName) . "')");
-            $instId = $db->querySingle("SELECT id FROM institutions WHERE name='" . SQLite3::escapeString($instName) . "'");
         }
 
         // Handle photo
@@ -109,20 +103,14 @@ if ($method === 'POST') {
         $id       = (int)($data['id'] ?? 0);
         $name     = trim($data['name']     ?? '');
         $position = trim($data['position'] ?? '');
-        $instName = trim($data['institution'] ?? '');
+        $instId   = resolve_user_institution_id($db, $data['institution_id'] ?? null, $data['institution'] ?? null);
         $whatsapp = trim($data['whatsapp'] ?? '');
         $email    = trim($data['email']    ?? '');
-        $role     = in_array($data['role'] ?? '', ['admin','user']) ? $data['role'] : 'user';
+        $role     = in_array($data['role'] ?? '', ['admin', 'user']) ? $data['role'] : 'user';
         $password = $data['password'] ?? '';
 
         if (!$id || !$name || !$email) {
             json_response(['error' => 'Dados inválidos.'], 400);
-        }
-
-        $instId = null;
-        if ($instName) {
-            $db->exec("INSERT OR IGNORE INTO institutions (name) VALUES ('" . SQLite3::escapeString($instName) . "')");
-            $instId = $db->querySingle("SELECT id FROM institutions WHERE name='" . SQLite3::escapeString($instName) . "'");
         }
 
         // Handle photo update
@@ -178,15 +166,39 @@ if ($method === 'POST') {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function save_photo(array $file): string {
+function save_photo(array $file): string
+{
     $uploadDir = dirname(__DIR__) . '/uploads/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
     $ext   = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $allow = ['jpg','jpeg','png','gif','webp'];
+    $allow = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     if (!in_array($ext, $allow)) return '';
 
     $fname = uniqid('photo_', true) . '.' . $ext;
     move_uploaded_file($file['tmp_name'], $uploadDir . $fname);
     return $fname;
+}
+
+function resolve_user_institution_id(SQLite3 $db, mixed $institutionIdRaw, mixed $institutionNameRaw): ?int
+{
+    $idValue = trim((string)$institutionIdRaw);
+    if ($idValue !== '' && ctype_digit($idValue)) {
+        $id = (int)$idValue;
+        $stmt = $db->prepare('SELECT id FROM institutions WHERE id = :id');
+        $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+        $res = $stmt->execute();
+        if ($res->fetchArray(SQLITE3_ASSOC)) {
+            return $id;
+        }
+    }
+
+    // Backward-compatible path for older clients still sending institution name.
+    $name = trim((string)$institutionNameRaw);
+    if ($name === '') {
+        return null;
+    }
+    $escaped = SQLite3::escapeString($name);
+    $db->exec("INSERT OR IGNORE INTO institutions (name) VALUES ('$escaped')");
+    return (int)$db->querySingle("SELECT id FROM institutions WHERE name='$escaped'");
 }
