@@ -12,18 +12,18 @@ if (is_logged_in()) {
   exit;
 }
 
-// Check if there's a cookie-resident email for pre-filling
+// Check if there's a cookie-resident username for pre-filling
 $cookieUserId = get_cookie_user_id();
 $cookieAge    = get_session_cookie_age();
-$prefilledEmail = '';
-$sessionFresh   = false; // < 48h
+$prefilledUsername = '';
+$sessionFresh      = false; // < 48h
 
 if ($cookieUserId) {
   $db = get_db();
-  $row = $db->querySingle("SELECT email FROM users WHERE id = $cookieUserId", true);
+  $row = $db->querySingle("SELECT name FROM users WHERE id = $cookieUserId", true);
   if ($row) {
-    $prefilledEmail = $row['email'];
-    $sessionFresh   = ($cookieAge !== null && $cookieAge < SESSION_48H);
+    $prefilledUsername = $row['name'];
+    $sessionFresh      = ($cookieAge !== null && $cookieAge < SESSION_48H);
   }
 }
 ?>
@@ -174,19 +174,19 @@ if ($cookieUserId) {
       </div>
 
       <form id="login-form" class="space-y-4">
-        <!-- Email -->
+        <!-- Username -->
         <div>
-          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block" for="email">Email</label>
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block" for="identifier">Utilizador</label>
           <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">mail</span>
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">person</span>
             <input
-              id="email"
-              name="email"
-              type="email"
-              autocomplete="email"
+              id="identifier"
+              name="identifier"
+              type="text"
+              autocomplete="username"
               required
-              value="<?= htmlspecialchars($prefilledEmail) ?>"
-              placeholder="seu@email.com"
+              value="<?= htmlspecialchars($prefilledUsername) ?>"
+              placeholder="nome de utilizador"
               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
           </div>
         </div>
@@ -250,13 +250,13 @@ if ($cookieUserId) {
       }
     });
 
-    // ── Remember email in localStorage ─────────────────────────────────────────
-    const savedEmail = localStorage.getItem('parseiras_email');
-    if (savedEmail && !document.getElementById('email').value) {
-      document.getElementById('email').value = savedEmail;
+    // ── Remember username in localStorage ────────────────────────────────────────
+    const savedUsername = localStorage.getItem('parseiras_username');
+    if (savedUsername && !document.getElementById('identifier').value) {
+      document.getElementById('identifier').value = savedUsername;
     }
 
-    <?php if ($sessionFresh && $prefilledEmail): ?>
+    <?php if ($sessionFresh && $prefilledUsername): ?>
       // Session is fresh (<48h) — signal PHP-side auto-fill note already shown
       document.getElementById('password').value = '__SESSION_FRESH__';
       document.getElementById('password').placeholder = 'Sessão ativa';
@@ -271,7 +271,7 @@ if ($cookieUserId) {
       const err = document.getElementById('login-error');
       const errMsg = document.getElementById('login-error-msg');
 
-      const email = document.getElementById('email').value.trim();
+      const identifier = document.getElementById('identifier').value.trim();
       const password = document.getElementById('password').value;
 
       btn.disabled = true;
@@ -287,14 +287,14 @@ if ($cookieUserId) {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            email,
+            identifier,
             password
           }),
         });
         const data = await res.json();
 
         if (data.success) {
-          localStorage.setItem('parseiras_email', email);
+          localStorage.setItem('parseiras_username', identifier);
           window.location.href = 'app.php';
         } else {
           errMsg.textContent = data.error || 'Erro ao autenticar.';

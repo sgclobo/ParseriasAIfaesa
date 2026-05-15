@@ -1,4 +1,5 @@
 <?php
+
 /**
  * api/login.php — Handle login POST request
  */
@@ -13,11 +14,11 @@ if (!$body) {
     json_response(['error' => 'Invalid request body'], 400);
 }
 
-$email    = trim($body['email']    ?? '');
-$password = trim($body['password'] ?? '');
+$identifier = trim($body['identifier'] ?? $body['username'] ?? $body['email'] ?? '');
+$password   = trim($body['password'] ?? '');
 
-if (!$email || !$password) {
-    json_response(['error' => 'Email e senha são obrigatórios.'], 400);
+if (!$identifier || !$password) {
+    json_response(['error' => 'Utilizador e senha são obrigatórios.'], 400);
 }
 
 // Handle session-fresh placeholder
@@ -30,7 +31,7 @@ if ($password === '__SESSION_FRESH__') {
     }
 }
 
-$result = attempt_login($email, $password);
+$result = attempt_login($identifier, $password);
 
 if ($result['success']) {
     json_response(['success' => true, 'role' => $result['user']['role']]);

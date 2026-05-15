@@ -1,4 +1,5 @@
 <?php
+
 /**
  * auth.php — Session helpers and authentication logic
  */
@@ -9,11 +10,13 @@ session_start();
 
 define('SESSION_48H', 48 * 3600);
 
-function is_logged_in(): bool {
+function is_logged_in(): bool
+{
     return isset($_SESSION['user_id']);
 }
 
-function current_user(): ?array {
+function current_user(): ?array
+{
     if (!is_logged_in()) return null;
     static $user = null;
     if ($user === null) {
@@ -31,19 +34,22 @@ function current_user(): ?array {
     return $user;
 }
 
-function is_admin(): bool {
+function is_admin(): bool
+{
     $u = current_user();
     return $u && $u['role'] === 'admin';
 }
 
-function require_login(): void {
+function require_login(): void
+{
     if (!is_logged_in()) {
         header('Location: index.php');
         exit;
     }
 }
 
-function require_admin(): void {
+function require_admin(): void
+{
     require_login();
     if (!is_admin()) {
         http_response_code(403);
@@ -51,20 +57,22 @@ function require_admin(): void {
     }
 }
 
-function attempt_login(string $email, string $password): array {
+function attempt_login(string $identifier, string $password): array
+{
     $db   = get_db();
+    // Accept username (name) or email
     $stmt = $db->prepare("
         SELECT u.*, i.name AS institution_name
         FROM users u
         LEFT JOIN institutions i ON i.id = u.institution_id
-        WHERE u.email = :e
+        WHERE u.email = :i OR u.name = :i
     ");
-    $stmt->bindValue(':e', $email);
+    $stmt->bindValue(':i', $identifier);
     $res  = $stmt->execute();
     $user = $res->fetchArray(SQLITE3_ASSOC);
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
-        return ['success' => false, 'error' => 'Invalid email or password.'];
+        return ['success' => false, 'error' => 'Utilizador ou senha incorretos.'];
     }
 
     // Update last_login
@@ -82,14 +90,16 @@ function attempt_login(string $email, string $password): array {
     return ['success' => true, 'user' => $user];
 }
 
-function get_session_cookie_age(): ?int {
+function get_session_cookie_age(): ?int
+{
     if (!isset($_COOKIE['pars_session'])) return null;
     $data = json_decode(base64_decode($_COOKIE['pars_session']), true);
     if (!$data || !isset($data['ts'])) return null;
     return time() - (int)$data['ts'];
 }
 
-function get_cookie_user_id(): ?int {
+function get_cookie_user_id(): ?int
+{
     if (!isset($_COOKIE['pars_session'])) return null;
     $data = json_decode(base64_decode($_COOKIE['pars_session']), true);
     if (!$data || !isset($data['uid'])) return null;
@@ -105,13 +115,15 @@ if (!is_logged_in() && isset($_COOKIE['pars_session'])) {
     }
 }
 
-function json_response(array $data, int $status = 200): void {
+function json_response(array $data, int $status = 200): void
+{
     http_response_code($status);
     header('Content-Type: application/json');
     echo json_encode($data);
     exit;
 }
 
-function sanitize(string $v): string {
+function sanitize(string $v): string
+{
     return htmlspecialchars(trim($v), ENT_QUOTES, 'UTF-8');
 }
